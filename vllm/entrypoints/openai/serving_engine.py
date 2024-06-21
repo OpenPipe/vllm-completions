@@ -51,7 +51,7 @@ class OpenAIServing:
 
         if lora_modules is None:
             self.lora_requests = []
-        elif isinstance(lora_modules, LoraModuleResolver):
+        elif all(isinstance(lora_module, LoraModuleResolver) for lora_module in lora_modules):
             self.lora_requests = [
                 lora_module.resolve_lora() for lora_module in lora_modules
             ]
