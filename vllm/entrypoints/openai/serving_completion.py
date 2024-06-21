@@ -1,8 +1,10 @@
 import time
 from typing import (AsyncGenerator, AsyncIterator, Callable, Dict, List,
-                    Optional)
+                    Optional, Union)
 from typing import Sequence as GenericSequence
 from typing import Tuple
+
+from vllm.entrypoints.openai.lora_module_resolver import LoraModuleResolver
 
 from fastapi import Request
 
@@ -63,7 +65,8 @@ class OpenAIServingCompletion(OpenAIServing):
 
     def __init__(self, engine: AsyncLLMEngine, model_config: ModelConfig,
                  served_model_names: List[str],
-                 lora_modules: Optional[List[LoRAModulePath]]):
+                 lora_modules: Union[Optional[List[LoRAModulePath]],
+                                      Optional[LoraModuleResolver]]):
         super().__init__(engine=engine,
                          model_config=model_config,
                          served_model_names=served_model_names,

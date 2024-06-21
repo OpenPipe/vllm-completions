@@ -17,6 +17,7 @@ from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.sequence import Logprob
 from vllm.transformers_utils.tokenizer import get_tokenizer
+from vllm.entrypoints.openai.lora_module_resolver import LoraModuleResolver
 
 logger = init_logger(__name__)
 
@@ -31,7 +32,8 @@ class OpenAIServing:
 
     def __init__(self, engine: AsyncLLMEngine, model_config: ModelConfig,
                  served_model_names: List[str],
-                 lora_modules: Optional[List[LoRAModulePath]]):
+                 lora_modules: Union[Optional[List[LoRAModulePath]],
+                                     Optional[List[LoraModuleResolver]]]):
         super().__init__()
 
         self.engine = engine
@@ -49,6 +51,10 @@ class OpenAIServing:
 
         if lora_modules is None:
             self.lora_requests = []
+        elif isinstance(lora_modules, LoraModuleResolver):
+            self.lora_requests = [
+                lora_module.resolve_lora() for lora_module in lora_modules
+            ]
         else:
             self.lora_requests = [
                 LoRARequest(
