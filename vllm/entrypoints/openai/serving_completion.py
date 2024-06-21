@@ -66,7 +66,7 @@ class OpenAIServingCompletion(OpenAIServing):
     def __init__(self, engine: AsyncLLMEngine, model_config: ModelConfig,
                  served_model_names: List[str],
                  lora_modules: Union[Optional[List[LoRAModulePath]],
-                                      Optional[LoraModuleResolver]]):
+                                      Optional[List[LoraModuleResolver]]]):
         super().__init__(engine=engine,
                          model_config=model_config,
                          served_model_names=served_model_names,
