@@ -32,8 +32,8 @@ class OpenAIServing:
 
     def __init__(self, engine: AsyncLLMEngine, model_config: ModelConfig,
                  served_model_names: List[str],
-                 lora_modules: Union[Optional[List[LoRAModulePath]],
-                                     Optional[List[LoraModuleResolver]]]):
+                 lora_modules: Optional[Union[List[LoRAModulePath],
+                                              LoraModuleResolver]]):
         super().__init__()
 
         self.engine = engine
@@ -51,10 +51,6 @@ class OpenAIServing:
 
         if lora_modules is None:
             self.lora_requests = []
-        elif all(isinstance(lora_module, LoraModuleResolver) for lora_module in lora_modules):
-            self.lora_requests = [
-                lora_module.resolve_lora() for lora_module in lora_modules
-            ]
         else:
             self.lora_requests = [
                 LoRARequest(
@@ -119,13 +115,19 @@ class OpenAIServing:
 
     def _maybe_get_lora(
         self, request: Union[CompletionRequest, ChatCompletionRequest,
-                             EmbeddingRequest]
-    ) -> Optional[LoRARequest]:
+                             EmbeddingRequest], 
+                             lora_module_resolver: Optional[LoraModuleResolver] 
+                             = None) -> Optional[LoRARequest]:
         if request.model in self.served_model_names:
             return None
         for lora in self.lora_requests:
             if request.model == lora.lora_name:
                 return lora
+        if lora_module_resolver is not None:
+            resolved_lora_request = lora_module_resolver.resolve_lora(request.model)
+            if resolved_lora_request is not None:
+                return resolved_lora_request
+        # if _check_model has been called earlier, this will be unreachable
         # if _check_model has been called earlier, this will be unreachable
         raise ValueError(f"The model `{request.model}` does not exist.")
 

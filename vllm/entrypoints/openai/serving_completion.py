@@ -65,8 +65,8 @@ class OpenAIServingCompletion(OpenAIServing):
 
     def __init__(self, engine: AsyncLLMEngine, model_config: ModelConfig,
                  served_model_names: List[str],
-                 lora_modules: Union[Optional[List[LoRAModulePath]],
-                                      Optional[List[LoraModuleResolver]]]):
+                 lora_modules: Optional[Union[List[LoRAModulePath],
+                                              LoraModuleResolver]]):
         super().__init__(engine=engine,
                          model_config=model_config,
                          served_model_names=served_model_names,
@@ -100,7 +100,11 @@ class OpenAIServingCompletion(OpenAIServing):
         generators: List[AsyncIterator[RequestOutput]] = []
         try:
             sampling_params = request.to_sampling_params()
-            lora_request = self._maybe_get_lora(request)
+            lora_request = self._maybe_get_lora(request,
+                                                self.lora_modules
+                                                if isinstance(self.lora_modules,
+                                                              LoraModuleResolver)
+                                                else None)
             decoding_config = await self.engine.get_decoding_config()
             guided_decoding_backend = request.guided_decoding_backend \
                 or decoding_config.guided_decoding_backend
