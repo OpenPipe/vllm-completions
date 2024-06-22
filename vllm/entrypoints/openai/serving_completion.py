@@ -83,6 +83,9 @@ class OpenAIServingCompletion(OpenAIServing):
             - suffix (the language models we currently support do not support
             suffix)
         """
+        if isinstance(self.lora_modules, LoraModuleResolver):
+            self.lora_requests = [ await self.lora_modules.resolve_lora(request.model)]
+
         error_check_ret = await self._check_model(request)
         if error_check_ret is not None:
             return error_check_ret
@@ -100,11 +103,7 @@ class OpenAIServingCompletion(OpenAIServing):
         generators: List[AsyncIterator[RequestOutput]] = []
         try:
             sampling_params = request.to_sampling_params()
-            lora_request = self._maybe_get_lora(request,
-                                                self.lora_modules
-                                                if isinstance(self.lora_modules,
-                                                              LoraModuleResolver)
-                                                else None)
+            lora_request = self._maybe_get_lora(request)
             decoding_config = await self.engine.get_decoding_config()
             guided_decoding_backend = request.guided_decoding_backend \
                 or decoding_config.guided_decoding_backend

@@ -115,18 +115,12 @@ class OpenAIServing:
 
     def _maybe_get_lora(
         self, request: Union[CompletionRequest, ChatCompletionRequest,
-                             EmbeddingRequest], 
-                             lora_module_resolver: Optional[LoraModuleResolver] 
-                             = None) -> Optional[LoRARequest]:
+                             EmbeddingRequest]) -> Optional[LoRARequest]:
         if request.model in self.served_model_names:
             return None
         for lora in self.lora_requests:
             if request.model == lora.lora_name:
                 return lora
-        if lora_module_resolver is not None:
-            resolved_lora_request = lora_module_resolver.resolve_lora(request.model)
-            if resolved_lora_request is not None:
-                return resolved_lora_request
         # if _check_model has been called earlier, this will be unreachable
         # if _check_model has been called earlier, this will be unreachable
         raise ValueError(f"The model `{request.model}` does not exist.")
