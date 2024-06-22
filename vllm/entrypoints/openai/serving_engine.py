@@ -49,7 +49,7 @@ class OpenAIServing:
 
         self.served_model_names = served_model_names
 
-        if lora_modules is None:
+        if lora_modules is None and isinstance(lora_modules, LoraModuleResolver):
             self.lora_requests = []
         else:
             self.lora_requests = [
