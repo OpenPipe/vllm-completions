@@ -4,6 +4,7 @@ from typing import (AsyncGenerator, AsyncIterator, Callable, Dict, List,
                     Optional)
 from typing import Sequence as GenericSequence
 from typing import Tuple, Union, cast
+from vllm.entrypoints.openai.lora_module_resolver import LoraModuleResolver
 
 from fastapi import Request
 
@@ -47,7 +48,7 @@ class OpenAIServingCompletion(OpenAIServing):
         model_config: ModelConfig,
         served_model_names: List[str],
         *,
-        lora_modules: Optional[List[LoRAModulePath]],
+        lora_modules: Optional[Union[List[LoRAModulePath], LoraModuleResolver]],
         prompt_adapters: Optional[List[PromptAdapterPath]],
         request_logger: Optional[RequestLogger],
         return_tokens_as_token_ids: bool = False,
@@ -82,6 +83,12 @@ class OpenAIServingCompletion(OpenAIServing):
         if request.suffix is not None:
             return self.create_error_response(
                 "suffix is not currently supported")
+
+        if self.lora_module_resolver is not None:
+                new_lora_request = await self.lora_module_resolver.resolve_lora(request.model)
+
+                if not any(lora_request.name == new_lora_request.name for lora_request in self.lora_requests):
+                    self.lora_requests.append(new_lora_request)
 
         model_name = self.served_model_names[0]
         request_id = f"cmpl-{random_uuid()}"

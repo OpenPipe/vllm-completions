@@ -34,6 +34,7 @@ from vllm.prompt_adapter.request import PromptAdapterRequest
 from vllm.sampling_params import LogitsProcessor, SamplingParams
 from vllm.sequence import Logprob
 from vllm.transformers_utils.tokenizer import AnyTokenizer
+from vllm.entrypoints.openai.lora_module_resolver import LoraModuleResolver
 from vllm.utils import AtomicCounter
 
 logger = init_logger(__name__)
@@ -68,7 +69,7 @@ class OpenAIServing:
         model_config: ModelConfig,
         served_model_names: List[str],
         *,
-        lora_modules: Optional[List[LoRAModulePath]],
+        lora_modules: Optional[Union[List[LoRAModulePath], LoraModuleResolver]],
         prompt_adapters: Optional[List[PromptAdapterPath]],
         request_logger: Optional[RequestLogger],
         return_tokens_as_token_ids: bool = False,
@@ -84,13 +85,16 @@ class OpenAIServing:
         self.lora_id_counter = AtomicCounter(0)
         self.lora_requests = []
         if lora_modules is not None:
-            self.lora_requests = [
-                LoRARequest(
-                    lora_name=lora.name,
-                    lora_int_id=i,
-                    lora_path=lora.path,
-                ) for i, lora in enumerate(lora_modules, start=1)
-            ]
+            if isinstance(lora_modules, list) and all(isinstance(item, LoRAModulePath) for item in lora_modules):
+                self.lora_requests = [
+                    LoRARequest(
+                        lora_name=lora.name,
+                        lora_int_id=i,
+                        lora_path=lora.path,
+                    ) for i, lora in enumerate(lora_modules, start=1)
+                ]
+            elif isinstance(lora_modules, LoraModuleResolver):
+                self.lora_module_resolver = lora_modules
 
         self.prompt_adapter_requests = []
         if prompt_adapters is not None:
