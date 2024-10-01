@@ -94,11 +94,14 @@ class OpenAIServing:
         if lora_modules is not None:
             if isinstance(lora_modules, list) and all(isinstance(item, LoRAModulePath) for item in lora_modules):
                 self.lora_requests = [
-                    LoRARequest(
-                        lora_name=lora.name,
-                        lora_int_id=i,
-                        lora_path=lora.path,
-                    ) for i, lora in enumerate(lora_modules, start=1)
+                    LoRARequest(lora_name=lora.name,
+                                lora_int_id=i,
+                                lora_path=lora.path,
+                                base_model_name=lora.base_model_name
+                                if lora.base_model_name
+                                and self._is_model_supported(lora.base_model_name)
+                                else self.base_model_paths[0].name)
+                    for i, lora in enumerate(lora_modules, start=1)
                 ]
             elif isinstance(lora_modules, LoraModuleResolver):
                 self.lora_module_resolver = lora_modules
