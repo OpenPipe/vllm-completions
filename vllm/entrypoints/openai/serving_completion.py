@@ -78,7 +78,15 @@ class OpenAIServingCompletion(OpenAIServing):
             - suffix (the language models we currently support do not support
             suffix)
         """
-        print("Creating completion Start")
+
+        lora_name = request.model
+        # Check if `lora_name` already exists in `self.lora_requests`
+        if not any(lora_name == lora_request.name for lora_request in self.lora_requests):
+            # Only resolve and append if `lora_name` is not already in the lora_requests
+            if self.lora_module_resolver:
+                print(f"Resolving LoRA model for request model: {lora_name}")
+                new_lora_request = await self.lora_module_resolver.resolve_lora(lora_name)
+                self.lora_requests.append(new_lora_request)
 
         # if self.lora_module_resolver is not None:
         #         new_lora_request = await self.lora_module_resolver.resolve_lora(request.model)
@@ -86,17 +94,17 @@ class OpenAIServingCompletion(OpenAIServing):
         #         if not any(lora_request.name == new_lora_request.name for lora_request in self.lora_requests):
         #             self.lora_requests.append(new_lora_request)
 
-        if self.lora_module_resolver is not None:
-            logger.info(f"LoRA module resolver: {self.lora_module_resolver}")
-            logger.info(f"Resolving LoRA model for request model: {request.model}")
-            print(f"LoRA module resolver: {self.lora_module_resolver}")
-            print(f"Resolving LoRA model for request model: {request.model}")
-            self.lora_requests = [
-                await self.lora_module_resolver.resolve_lora(request.model)
-            ]
-        else:
-            print("LoRA module resolver is None")
-            logger.warning("LoRA module resolver is None")
+        # if self.lora_module_resolver is not None:
+        #     logger.info(f"LoRA module resolver: {self.lora_module_resolver}")
+        #     logger.info(f"Resolving LoRA model for request model: {request.model}")
+        #     print(f"LoRA module resolver: {self.lora_module_resolver}")
+        #     print(f"Resolving LoRA model for request model: {request.model}")
+        #     self.lora_requests = [
+        #         await self.lora_module_resolver.resolve_lora(request.model)
+        #     ]
+        # else:
+        #     print("LoRA module resolver is None")
+        #     logger.warning("LoRA module resolver is None")
 
         error_check_ret = await self._check_model(request)
         if error_check_ret is not None:
