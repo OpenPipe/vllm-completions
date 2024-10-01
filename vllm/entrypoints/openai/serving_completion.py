@@ -80,21 +80,6 @@ class OpenAIServingCompletion(OpenAIServing):
         """
         print("Creating completion Start")
 
-        error_check_ret = await self._check_model(request)
-        if error_check_ret is not None:
-            return error_check_ret
-
-        # If the engine is dead, raise the engine's DEAD_ERROR.
-        # This is required for the streaming case, where we return a
-        # success status before we actually start generating text :).
-        if self.engine_client.errored:
-            raise self.engine_client.dead_error
-
-        # Return error for unsupported features.
-        if request.suffix is not None:
-            return self.create_error_response(
-                "suffix is not currently supported")
-
         # if self.lora_module_resolver is not None:
         #         new_lora_request = await self.lora_module_resolver.resolve_lora(request.model)
 
@@ -112,6 +97,21 @@ class OpenAIServingCompletion(OpenAIServing):
         else:
             print("LoRA module resolver is None")
             logger.warning("LoRA module resolver is None")
+
+        error_check_ret = await self._check_model(request)
+        if error_check_ret is not None:
+            return error_check_ret
+
+        # If the engine is dead, raise the engine's DEAD_ERROR.
+        # This is required for the streaming case, where we return a
+        # success status before we actually start generating text :).
+        if self.engine_client.errored:
+            raise self.engine_client.dead_error
+
+        # Return error for unsupported features.
+        if request.suffix is not None:
+            return self.create_error_response(
+                "suffix is not currently supported")
 
         model_name = self.base_model_paths[0].name
         request_id = f"cmpl-{random_uuid()}"
