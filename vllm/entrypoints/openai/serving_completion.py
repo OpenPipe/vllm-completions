@@ -100,10 +100,13 @@ class OpenAIServingCompletion(OpenAIServing):
         #             self.lora_requests.append(new_lora_request)
 
         if self.lora_module_resolver is not None:
+            logger.info(f"LoRA module resolver: {self.lora_module_resolver}")
             logger.info(f"Resolving LoRA model for request model: {request.model}")
             self.lora_requests = [
                 await self.lora_module_resolver.resolve_lora(request.model)
             ]
+        else:
+            logger.warning("LoRA module resolver is None")
 
         model_name = self.base_model_paths[0].name
         request_id = f"cmpl-{random_uuid()}"
