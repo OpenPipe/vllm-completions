@@ -78,6 +78,8 @@ class OpenAIServingCompletion(OpenAIServing):
             - suffix (the language models we currently support do not support
             suffix)
         """
+        print("Creating completion Start")
+
         error_check_ret = await self._check_model(request)
         if error_check_ret is not None:
             return error_check_ret
@@ -102,10 +104,13 @@ class OpenAIServingCompletion(OpenAIServing):
         if self.lora_module_resolver is not None:
             logger.info(f"LoRA module resolver: {self.lora_module_resolver}")
             logger.info(f"Resolving LoRA model for request model: {request.model}")
+            print(f"LoRA module resolver: {self.lora_module_resolver}")
+            print(f"Resolving LoRA model for request model: {request.model}")
             self.lora_requests = [
                 await self.lora_module_resolver.resolve_lora(request.model)
             ]
         else:
+            print("LoRA module resolver is None")
             logger.warning("LoRA module resolver is None")
 
         model_name = self.base_model_paths[0].name
