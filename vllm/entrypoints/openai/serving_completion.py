@@ -93,11 +93,17 @@ class OpenAIServingCompletion(OpenAIServing):
             return self.create_error_response(
                 "suffix is not currently supported")
 
-        if self.lora_module_resolver is not None:
-                new_lora_request = await self.lora_module_resolver.resolve_lora(request.model)
+        # if self.lora_module_resolver is not None:
+        #         new_lora_request = await self.lora_module_resolver.resolve_lora(request.model)
 
-                if not any(lora_request.name == new_lora_request.name for lora_request in self.lora_requests):
-                    self.lora_requests.append(new_lora_request)
+        #         if not any(lora_request.name == new_lora_request.name for lora_request in self.lora_requests):
+        #             self.lora_requests.append(new_lora_request)
+
+        if self.lora_module_resolver is not None:
+            logger.info(f"Resolving LoRA model for request model: {request.model}")
+            self.lora_requests = [
+                await self.lora_module_resolver.resolve_lora(request.model)
+            ]
 
         model_name = self.base_model_paths[0].name
         request_id = f"cmpl-{random_uuid()}"
