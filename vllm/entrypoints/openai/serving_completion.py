@@ -26,8 +26,8 @@ from vllm.entrypoints.openai.serving_engine import (BaseModelPath,
                                                     LoRAModulePath,
                                                     OpenAIServing,
                                                     PromptAdapterPath)
-from vllm.lora.resolver import LoRAResolver
 from vllm.logger import init_logger
+from vllm.lora.resolver import LoRAResolver
 from vllm.outputs import RequestOutput
 from vllm.sequence import Logprob
 from vllm.tracing import (contains_trace_headers, extract_trace_headers,
